@@ -1,0 +1,23 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">Go Weed logo</title>
+  <defs>
+    <linearGradient id="budGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8de758"/>
+      <stop offset="100%" stop-color="#2c7a1f"/>
+    </linearGradient>
+    <linearGradient id="leafGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60b241"/>
+      <stop offset="100%" stop-color="#14511a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#04140a"/>
+  <path d="M60 20c14 18 28 28 20 46-10 20-22 22-32 0-8-17 6-28 12-46z" fill="url(#budGradient)"/>
+  <path d="M58 30c10 12 20 18 16 34-8 16-14 16-20 0-4-12 4-22 4-34z" fill="#7eda62"/>
+  <path d="M35 50c14-14 0-28 0-28s-16 24-4 38c10 10 24 0 24 0s-8-12-20-10z" fill="url(#leafGradient)"/>
+  <path d="M85 48c-14-14 0-28 0-28s16 24 4 38c-10 10-24 0-24 0s8-12 20-10z" fill="url(#leafGradient)"/>
+  <circle cx="45" cy="65" r="6" fill="#04140a"/>
+  <path d="M77 64c4 0 8 4 8 8s-4 8-8 8-8-4-8-8 4-8 8-8z" fill="#04140a"/>
+  <path d="M52 76c0 5 12 5 12 0" stroke="#04140a" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M41 44c6 0 10-4 12-9" stroke="#04140a" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M65 40c0-4 4-8 10-8" stroke="#04140a" stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
