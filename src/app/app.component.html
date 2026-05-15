@@ -1,0 +1,504 @@
+<div class="app-shell" [ngClass]="rootClasses">
+  <div class="animated-bg" aria-hidden="true">
+    <span class="leaf leaf-one">🌿</span>
+    <span class="leaf leaf-two">🍃</span>
+    <span class="leaf leaf-three">🌱</span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">GW</div>
+      <div>
+        <span class="eyebrow">Task Manager</span>
+        <strong>GO WEED</strong>
+      </div>
+    </div>
+
+    <button class="primary-action" type="button" (click)="openCreateModal()">
+      <span>✚</span> Crear tarea
+    </button>
+
+    <nav class="side-nav" aria-label="Navegación principal">
+      <button type="button" [class.active]="activeView === 'calendar'" (click)="setView('calendar')">🗓️ Calendario</button>
+      <button type="button" [class.active]="activeView === 'board'" (click)="setView('board')">🧩 Tablero</button>
+      <button type="button" [class.active]="activeView === 'list'" (click)="setView('list')">✅ Lista</button>
+      <button type="button" [class.active]="activeView === 'inbox'" (click)="setView('inbox')">🔔 Bandeja</button>
+    </nav>
+
+    <section class="project-panel">
+      <div class="panel-title">
+        <span>Proyectos</span>
+        <button type="button" title="Crear tarea" (click)="openCreateModal()">+</button>
+      </div>
+
+      <button class="project-item" type="button" [class.active]="selectedProject === 'all'" (click)="selectedProject = 'all'">
+        <span class="project-dot all-dot"></span>
+        <span>Todos los proyectos</span>
+        <strong>{{ activeTasksCount }}</strong>
+      </button>
+
+      <button
+        class="project-item"
+        type="button"
+        *ngFor="let project of projects; trackBy: trackByProject"
+        [class.active]="selectedProject === project.id"
+        [ngStyle]="{'--project-color': project.color, '--project-glow': project.glow}"
+        (click)="selectedProject = project.id">
+        <span class="project-dot"></span>
+        <span>{{ project.name }}</span>
+        <strong>{{ getProjectCount(project.id) }}</strong>
+      </button>
+    </section>
+
+    <section class="private-note">
+      <div class="private-note__header">
+        <strong>Bloc privado</strong>
+        <span>🔒</span>
+      </div>
+      <p>Prioridad de hoy: cerrar pendientes críticos, revisar entregas y dejar automatizaciones listas.</p>
+      <div class="progress-track">
+        <span [style.width.%]="completionPercentage"></span>
+      </div>
+      <small>{{ completionPercentage }}% de tareas completadas</small>
+    </section>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar" [class.hidden]="hideTopbar">
+      <div class="topbar-widget">
+        <div>
+          <span>Hoy en GO WEED</span>
+          <strong>{{ activeTasksCount }} tareas activas · {{ highPriorityCount }} alta prioridad</strong>
+        </div>
+        <span class="topbar-pill">En foco</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="ghost-btn" type="button" (click)="shareBoard()">Compartir</button>
+        <button class="ghost-btn" type="button" (click)="showCustomizeModal = true">Personalizar</button>
+        <div class="avatar-wrap">
+          <button class="avatar" type="button" (click)="toggleUserMenu()" aria-label="Abrir menú de usuario">{{ user.initials }}</button>
+
+          <div class="user-menu" *ngIf="showUserMenu">
+            <div class="user-menu__head">
+              <div class="avatar avatar-large">{{ user.initials }}</div>
+              <div>
+                <strong>{{ user.name }}</strong>
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+            <button type="button" (click)="openProfile()">👤 Ver perfil</button>
+            <button type="button" (click)="setUserStatus('Disponible')">🟢 Disponible</button>
+            <button type="button" (click)="setUserStatus('En foco')">🧠 Modo enfoque</button>
+            <button type="button" (click)="setUserStatus('No molestar')">🌙 No molestar</button>
+            <button type="button" (click)="fakeLogout()">🔐 Cerrar sesión demo</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero-card">
+      <div>
+        <span class="hero-kicker">● {{ greetingMessage }}</span>
+        <h1>Organiza tus tareas con un tablero rápido, visual y muy verde.</h1>
+        <p>GO WEED separa cada tarea por proyecto, prioridad y fecha para que puedas ver qué está listo, qué está andando y qué necesita atención.</p>
+      </div>
+
+      <div class="hero-stats">
+        <article>
+          <span>Activas</span>
+          <strong>{{ activeTasksCount }}</strong>
+        </article>
+        <article>
+          <span>Finalizadas</span>
+          <strong>{{ doneTasksCount }}</strong>
+        </article>
+        <article>
+          <span>Alta prioridad</span>
+          <strong>{{ highPriorityCount }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="toolbar-card">
+      <div class="tabs">
+        <button type="button" [class.active]="activeView === 'list'" (click)="setView('list')">Lista</button>
+        <button type="button" [class.active]="activeView === 'board'" (click)="setView('board')">Tablero</button>
+        <button type="button" [class.active]="activeView === 'calendar'" (click)="setView('calendar')">Calendario</button>
+        <button type="button" [class.active]="activeView === 'inbox'" (click)="setView('inbox')">Bandeja</button>
+      </div>
+
+      <div class="toolbar-actions">
+        <select [(ngModel)]="selectedProject" aria-label="Filtrar por proyecto">
+          <option value="all">Todos los proyectos</option>
+          <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+        </select>
+        <button class="primary-mini" type="button" (click)="openCreateModal()">+ Agregar tarea</button>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeView === 'calendar'">
+      <div class="section-heading">
+        <div>
+          <span>Semana actual</span>
+          <h2>Mayo 2026</h2>
+        </div>
+        <p>{{ filteredTasks.length }} tareas visibles</p>
+      </div>
+
+      <div class="calendar-grid">
+        <article class="day-column" *ngFor="let day of days" [class.today]="day.day === 12">
+          <header>
+            <span>{{ day.label }}</span>
+            <strong>{{ day.day }}</strong>
+          </header>
+          <button class="add-day-task" type="button" (click)="openCreateModal(undefined, day.date)">+ Agregar tarea</button>
+
+          <button
+            class="task-card"
+            type="button"
+            *ngFor="let task of getTasksByDay(day.date); trackBy: trackByTask"
+            [ngClass]="[getPriorityClass(task.priority), task.status === 'done' ? 'is-done' : '']"
+            [ngStyle]="{'--project-color': getProject(task.projectId).color, '--project-glow': getProject(task.projectId).glow}"
+            (click)="openTask(task)">
+            <span class="task-check">{{ task.status === 'done' ? '✓' : '○' }}</span>
+            <span class="task-time">{{ task.time }}</span>
+            <strong>{{ task.title }}</strong>
+            <small>{{ getProject(task.projectId).icon }} {{ getProject(task.projectId).name }}</small>
+            <em>{{ task.priority }}</em>
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeView === 'board'">
+      <div class="section-heading">
+        <div>
+          <span>Tablero visual</span>
+          <h2>Flujo de trabajo</h2>
+        </div>
+        <p>Haz clic en una tarea para abrir detalle, comentar o finalizar.</p>
+      </div>
+
+      <div class="board-grid">
+        <article class="board-column" *ngFor="let column of boardColumns">
+          <header>
+            <div>
+              <strong>{{ column.label }}</strong>
+              <span>{{ column.helper }}</span>
+            </div>
+            <b>{{ getTasksByStatus(column.id).length }}</b>
+          </header>
+
+          <button
+            class="board-task"
+            type="button"
+            *ngFor="let task of getTasksByStatus(column.id); trackBy: trackByTask"
+            [ngStyle]="{'--project-color': getProject(task.projectId).color, '--project-glow': getProject(task.projectId).glow}"
+            (click)="openTask(task)">
+            <span>{{ getProject(task.projectId).icon }} {{ getProject(task.projectId).name }}</span>
+            <strong>{{ task.title }}</strong>
+            <small>{{ task.dueDate }} · {{ task.time }} · {{ task.priority }}</small>
+            <div class="quick-actions" (click)="$event.stopPropagation()">
+              <button type="button" (click)="moveTask(task, 'todo')">Por hacer</button>
+              <button type="button" (click)="moveTask(task, 'doing')">Avanzar</button>
+              <button type="button" (click)="moveTask(task, 'review')">Revisar</button>
+              <button type="button" (click)="moveTask(task, 'done')">Finalizar</button>
+            </div>
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeView === 'list'">
+      <div class="section-heading">
+        <div>
+          <span>Lista ejecutiva</span>
+          <h2>Todas las tareas</h2>
+        </div>
+        <p>{{ filteredTasks.length }} resultados</p>
+      </div>
+
+      <div class="task-table">
+        <button
+          class="task-row"
+          type="button"
+          *ngFor="let task of filteredTasks; trackBy: trackByTask"
+          [ngStyle]="{'--project-color': getProject(task.projectId).color, '--project-glow': getProject(task.projectId).glow}"
+          (click)="openTask(task)">
+          <span class="row-status">{{ task.status === 'done' ? '✓' : '○' }}</span>
+          <strong>{{ task.title }}</strong>
+          <span>{{ getProject(task.projectId).icon }} {{ getProject(task.projectId).name }}</span>
+          <span>{{ task.dueDate }} · {{ task.time }}</span>
+          <em>{{ task.priority }}</em>
+        </button>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeView === 'inbox'">
+      <div class="section-heading">
+        <div>
+          <span>Actividad</span>
+          <h2>Bandeja de entrada</h2>
+        </div>
+        <p>Resumen de movimientos del tablero.</p>
+      </div>
+
+      <div class="activity-list">
+        <article *ngFor="let task of filteredTasks; trackBy: trackByTask">
+          <div class="activity-dot" [ngStyle]="{'--project-color': getProject(task.projectId).color}"></div>
+          <div>
+            <strong>{{ user.name }}</strong>
+            <p>actualizó <button type="button" (click)="openTask(task)">{{ task.title }}</button> en {{ getProject(task.projectId).name }}.</p>
+            <small>{{ task.status === 'done' ? 'Finalizada' : 'Pendiente' }} · {{ task.priority }} prioridad</small>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <aside class="task-drawer" *ngIf="selectedTask as task">
+    <header class="drawer-header" [ngStyle]="{'--project-color': getProject(task.projectId).color, '--project-glow': getProject(task.projectId).glow}">
+      <button class="status-pill" type="button" (click)="task.status === 'done' ? reopenTask(task) : completeTask(task)">
+        {{ task.status === 'done' ? '✓ Finalizada' : '○ Marcar finalizada' }}
+      </button>
+      <button class="close-btn" type="button" (click)="closeTask()">×</button>
+    </header>
+
+    <div class="drawer-body">
+      <input class="drawer-title" [(ngModel)]="task.title" (blur)="updateTask()" aria-label="Título de la tarea">
+
+      <div class="meta-grid">
+        <label>
+          <span>Responsable</span>
+          <strong>{{ task.responsible }}</strong>
+        </label>
+        <label>
+          <span>Fecha de entrega</span>
+          <input type="date" [(ngModel)]="task.dueDate" (change)="updateTask()">
+        </label>
+        <label>
+          <span>Hora</span>
+          <input type="time" [(ngModel)]="task.time" (change)="updateTask()">
+        </label>
+        <label>
+          <span>Proyecto</span>
+          <select [(ngModel)]="task.projectId" (change)="updateTask()">
+            <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+          </select>
+        </label>
+        <label>
+          <span>Prioridad</span>
+          <select [(ngModel)]="task.priority" (change)="updateTask()">
+            <option>Alta</option>
+            <option>Media</option>
+            <option>Baja</option>
+          </select>
+        </label>
+        <label>
+          <span>Estado</span>
+          <select [(ngModel)]="task.status" (change)="updateTask()">
+            <option value="todo">Por hacer</option>
+            <option value="doing">En progreso</option>
+            <option value="review">En revisión</option>
+            <option value="done">Finalizada</option>
+          </select>
+        </label>
+      </div>
+
+      <section class="drawer-section">
+        <h3>Descripción</h3>
+        <textarea [(ngModel)]="task.description" (blur)="updateTask()" rows="5" placeholder="¿De qué se trata esta tarea?"></textarea>
+      </section>
+
+      <section class="drawer-section">
+        <h3>Comentarios</h3>
+        <div class="comments" *ngIf="task.comments.length; else emptyComments">
+          <article *ngFor="let comment of task.comments; trackBy: trackByComment">
+            <div class="comment-avatar">JO</div>
+            <div>
+              <strong>{{ comment.author }}</strong>
+              <p>{{ comment.text }}</p>
+              <small>{{ comment.createdAt | date:'short' }}</small>
+            </div>
+          </article>
+        </div>
+        <ng-template #emptyComments>
+          <p class="empty-state">Aún no hay comentarios. Agrega una nota para dejar contexto.</p>
+        </ng-template>
+
+        <div class="comment-box">
+          <div class="comment-avatar">JO</div>
+          <input type="text" placeholder="Agregar un comentario" [(ngModel)]="commentDraft" (keyup.enter)="addComment()">
+          <button type="button" (click)="addComment()">Enviar</button>
+        </div>
+      </section>
+
+      <div class="danger-zone">
+        <button type="button" (click)="deleteTask(task)">Eliminar tarea</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="modal-backdrop" *ngIf="showCreateModal" (click)="showCreateModal = false">
+    <section class="modal-card" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Nuevo pendiente</span>
+          <h2>Crear tarea</h2>
+        </div>
+        <button type="button" (click)="showCreateModal = false">×</button>
+      </header>
+
+      <div class="form-grid">
+        <label class="full">
+          <span>Título</span>
+          <input type="text" [(ngModel)]="newTask.title" placeholder="Ej: Revisar automatización de cliente">
+        </label>
+        <label class="full">
+          <span>Descripción</span>
+          <textarea rows="4" [(ngModel)]="newTask.description" placeholder="Agrega contexto, objetivo o pasos importantes."></textarea>
+        </label>
+        <label>
+          <span>Proyecto</span>
+          <select [(ngModel)]="newTask.projectId">
+            <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+          </select>
+        </label>
+        <label>
+          <span>Prioridad</span>
+          <select [(ngModel)]="newTask.priority">
+            <option>Alta</option>
+            <option>Media</option>
+            <option>Baja</option>
+          </select>
+        </label>
+        <label>
+          <span>Fecha</span>
+          <input type="date" [(ngModel)]="newTask.dueDate">
+        </label>
+        <label>
+          <span>Hora</span>
+          <input type="time" [(ngModel)]="newTask.time">
+        </label>
+      </div>
+
+      <footer>
+        <button class="ghost-btn" type="button" (click)="showCreateModal = false">Cancelar</button>
+        <button class="primary-mini" type="button" (click)="createTask()">Crear tarea</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showShareModal" (click)="showShareModal = false">
+    <section class="modal-card share-card" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Trabajo en equipo</span>
+          <h2>Compartir tablero</h2>
+        </div>
+        <button type="button" (click)="showShareModal = false">×</button>
+      </header>
+
+      <p>Invita personas al tablero de Jacobo o copia un enlace de acceso interno.</p>
+      <div class="share-link">
+        <code>https://go-weed.local/jacobo/board</code>
+        <button type="button" (click)="copyShareLink()">{{ copiedLink ? 'Copiado' : 'Copiar' }}</button>
+      </div>
+      <div class="invite-row">
+        <input type="email" placeholder="correo@empresa.com" [(ngModel)]="inviteEmail" (keyup.enter)="addCollaborator()">
+        <button class="primary-mini" type="button" (click)="addCollaborator()">Invitar</button>
+      </div>
+
+      <div class="collaborators">
+        <strong>Colaboradores</strong>
+        <span *ngFor="let collaborator of collaborators">{{ collaborator }}</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showCustomizeModal" (click)="showCustomizeModal = false">
+    <section class="modal-card customize-card" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Diseño del workspace</span>
+          <h2>Personalizar GO WEED</h2>
+        </div>
+        <button type="button" (click)="showCustomizeModal = false">×</button>
+      </header>
+
+      <div class="theme-options">
+        <button type="button" [class.active]="preferences.theme === 'forest'" (click)="preferences.theme = 'forest'">
+          <span class="swatch forest"></span>
+          Deep Forest
+        </button>
+        <button type="button" [class.active]="preferences.theme === 'neon'" (click)="preferences.theme = 'neon'">
+          <span class="swatch neon"></span>
+          Neon Bloom
+        </button>
+        <button type="button" [class.active]="preferences.theme === 'mint'" (click)="preferences.theme = 'mint'">
+          <span class="swatch mint"></span>
+          Mint Cyber
+        </button>
+      </div>
+
+      <label class="toggle-row">
+        <span>Vista compacta</span>
+        <input type="checkbox" [(ngModel)]="preferences.compact">
+      </label>
+      <label class="toggle-row">
+        <span>Celebración con hojas y cohetes</span>
+        <input type="checkbox" [(ngModel)]="preferences.particles">
+      </label>
+      <label class="toggle-row">
+        <span>Tarjetas redondeadas</span>
+        <input type="checkbox" [(ngModel)]="preferences.rounded">
+      </label>
+
+      <footer>
+        <button class="primary-mini" type="button" (click)="savePreferences()">Guardar personalización</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showProfileModal" (click)="showProfileModal = false">
+    <section class="modal-card profile-card" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Perfil de usuario</span>
+          <h2>Jacobo Ospina Gallo</h2>
+        </div>
+        <button type="button" (click)="showProfileModal = false">×</button>
+      </header>
+
+      <div class="profile-hero">
+        <div class="avatar avatar-xl">JO</div>
+        <div>
+          <strong>{{ user.name }}</strong>
+          <span>{{ user.email }}</span>
+          <small>{{ user.role }} · {{ user.status }}</small>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <span><strong>{{ activeTasksCount }}</strong> activas</span>
+        <span><strong>{{ doneTasksCount }}</strong> finalizadas</span>
+        <span><strong>{{ projects.length }}</strong> proyectos</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast-stack">
+    <article class="toast" *ngFor="let toast of toasts" [ngClass]="toast.type">{{ toast.text }}</article>
+  </div>
+
+  <div class="celebration-layer" aria-hidden="true" *ngIf="celebrationParticles.length">
+    <span
+      *ngFor="let particle of celebrationParticles"
+      [style.left.%]="particle.left"
+      [style.animation-delay.s]="particle.delay"
+      [style.animation-duration.s]="particle.duration"
+      [style.font-size.px]="particle.size">
+      {{ particle.icon }}
+    </span>
+  </div>
+</div>
