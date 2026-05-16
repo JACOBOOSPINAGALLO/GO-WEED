@@ -59,6 +59,21 @@ interface CelebrationParticle {
   size: number;
 }
 
+interface Note {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface WeekDay {
+  label: string;
+  date: string;
+  day: number;
+  isToday: boolean;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -118,15 +133,9 @@ export class AppComponent implements OnInit {
     }
   ];
 
-  readonly days = [
-    { label: 'LUN', date: '2026-05-11', day: 11 },
-    { label: 'MAR', date: '2026-05-12', day: 12 },
-    { label: 'MIÉ', date: '2026-05-13', day: 13 },
-    { label: 'JUE', date: '2026-05-14', day: 14 },
-    { label: 'VIE', date: '2026-05-15', day: 15 },
-    { label: 'SÁB', date: '2026-05-16', day: 16 },
-    { label: 'DOM', date: '2026-05-17', day: 17 }
-  ];
+  // Propiedades para el calendario dinámico
+  currentWeekStart: Date = new Date();
+  weekDays: WeekDay[] = [];
 
   readonly boardColumns: Array<{ id: TaskStatus; label: string; helper: string }> = [
     { id: 'todo', label: 'Por hacer', helper: 'Tareas nuevas o pendientes.' },
@@ -134,6 +143,12 @@ export class AppComponent implements OnInit {
     { id: 'review', label: 'En revisión', helper: 'Pendiente de validar.' },
     { id: 'done', label: 'Finalizadas', helper: 'Lo que ya quedó listo.' }
   ];
+
+  // Propiedades para el bloc de notas
+  notes: Note[] = [];
+  currentNoteIndex = 0;
+  noteEditMode = false;
+  noteAnimating = false;
 
   tasks: TaskItem[] = [];
   activeView: ViewMode = 'calendar';
@@ -165,6 +180,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadState();
+    this.generateWeekDays();
   }
 
   get filteredTasks(): TaskItem[] {
@@ -520,7 +536,163 @@ export class AppComponent implements OnInit {
     return typeof localStorage !== 'undefined';
   }
 
-  private pushToast(text: string, type: ToastMessage['type']): void {
+  // ===== CALENDAR METHODS =====
+  private generateWeekDays(): void {
+    const start = this.getMonday(this.currentWeekStart);
+    this.weekDays = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(date.getDate() + i);
+      const today = new Date();
+      const isToday = date.toDateString() === today.toDateString();
+
+      const dayNames = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+
+      this.weekDays.push({
+        label: dayNames[i],
+        date: this.formatDate(date),
+        day: date.getDate(),
+        isToday
+      });
+    }
+  }
+
+  private getMonday(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  goToPreviousWeek(): void {
+    const newDate = new Date(this.currentWeekStart);
+    newDate.setDate(newDate.getDate() - 7);
+    this.currentWeekStart = newDate;
+    this.generateWeekDays();
+  }
+
+  goToNextWeek(): void {
+    const newDate = new Date(this.currentWeekStart);
+    newDate.setDate(newDate.getDate() + 7);
+    this.currentWeekStart = newDate;
+    this.generateWeekDays();
+  }
+
+  goToToday(): void {
+    this.currentWeekStart = new Date();
+    this.generateWeekDays();
+  }
+
+  get currentWeekMonth(): string {
+    const month = this.currentWeekStart.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    return month.charAt(0).toUpperCase() + month.slice(1);
+  }
+
+  // ===== NOTES METHODS =====
+  get currentNote(): Note | undefined {
+    return this.notes[this.currentNoteIndex];
+  }
+
+  createNewNote(): void {
+    const newNote: Note = {
+      id: Date.now(),
+      title: 'Nueva nota',
+      content: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    this.notes = [...this.notes, newNote];
+    this.currentNoteIndex = this.notes.length - 1;
+    this.noteEditMode = true;
+    this.saveNotes();
+    this.pushToast('Nueva nota creada.', 'success');
+  }
+
+  nextNote(): void {
+    if (this.notes.length === 0) return;
+    this.noteAnimating = true;
+    window.setTimeout(() => {
+      this.currentNoteIndex = (this.currentNoteIndex + 1) % this.notes.length;
+      this.noteAnimating = false;
+    }, 150);
+  }
+
+  previousNote(): void {
+    if (this.notes.length === 0) return;
+    this.noteAnimating = true;
+    window.setTimeout(() => {
+      this.currentNoteIndex = (this.currentNoteIndex - 1 + this.notes.length) % this.notes.length;
+      this.noteAnimating = false;
+    }, 150);
+  }
+
+  deleteCurrentNote(): void {
+    if (this.notes.length === 0) return;
+
+    const noteId = this.currentNote!.id;
+    this.notes = this.notes.filter((note) => note.id !== noteId);
+
+    if (this.notes.length === 0) {
+      this.currentNoteIndex = 0;
+    } else {
+      this.currentNoteIndex = Math.min(this.currentNoteIndex, this.notes.length - 1);
+    }
+
+    this.saveNotes();
+    this.pushToast('Nota eliminada.', 'info');
+  }
+
+  updateCurrentNote(): void {
+    if (!this.currentNote) return;
+
+    const index = this.currentNoteIndex;
+    this.notes[index] = {
+      ...this.notes[index],
+      updatedAt: new Date().toISOString()
+    };
+
+    this.saveNotes();
+  }
+
+  toggleNoteEdit(): void {
+    this.noteEditMode = !this.noteEditMode;
+    if (!this.noteEditMode) {
+      this.updateCurrentNote();
+    }
+  }
+
+  private saveNotes(): void {
+    if (!this.canUseStorage()) return;
+    localStorage.setItem('go-weed-notes-v1', JSON.stringify(this.notes));
+  }
+
+  private loadNotes(): void {
+    const saved = this.readStorage<Note[]>('go-weed-notes-v1');
+    this.notes = saved ?? this.getDefaultNotes();
+    this.currentNoteIndex = 0;
+  }
+
+  private getDefaultNotes(): Note[] {
+    const now = new Date().toISOString();
+    return [
+      {
+        id: Date.now(),
+        title: 'Bienvenida',
+        content: 'Escribe aquí tus notas privadas. Se guardan automáticamente en tu navegador.',
+        createdAt: now,
+        updatedAt: now
+      }
+    ];
+  }
     const toast: ToastMessage = {
       id: Date.now(),
       text,
