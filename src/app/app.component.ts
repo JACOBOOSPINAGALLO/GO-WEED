@@ -146,6 +146,7 @@ export class AppComponent implements OnInit {
   showShareModal = false;
   showCustomizeModal = false;
   showUserMenu = false;
+  sidebarOpen = false;
   showProfileModal = false;
   inviteEmail = '';
   collaborators = ['Laura CRM', 'Juanita Patiño'];

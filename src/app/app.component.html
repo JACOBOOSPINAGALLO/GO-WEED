@@ -5,7 +5,7 @@
     <span class="leaf leaf-three">🌱</span>
   </div>
 
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="brand">
       <div class="brand-mark">
         <img src="assets/logo.svg" alt="GO WEED logo" class="brand-logo">
@@ -16,15 +16,15 @@
       </div>
     </div>
 
-    <button class="primary-action" type="button" (click)="openCreateModal()">
+    <button class="primary-action" type="button" (click)="openCreateModal(); sidebarOpen = false">
       <span>✚</span> Crear tarea
     </button>
 
     <nav class="side-nav" aria-label="Navegación principal">
-      <button type="button" [class.active]="activeView === 'calendar'" (click)="setView('calendar')">🗓️ Calendario</button>
-      <button type="button" [class.active]="activeView === 'board'" (click)="setView('board')">🧩 Tablero</button>
-      <button type="button" [class.active]="activeView === 'list'" (click)="setView('list')">✅ Lista</button>
-      <button type="button" [class.active]="activeView === 'inbox'" (click)="setView('inbox')">🔔 Bandeja</button>
+      <button type="button" [class.active]="activeView === 'calendar'" (click)="setView('calendar'); sidebarOpen = false">🗓️ Calendario</button>
+      <button type="button" [class.active]="activeView === 'board'" (click)="setView('board'); sidebarOpen = false">🧩 Tablero</button>
+      <button type="button" [class.active]="activeView === 'list'" (click)="setView('list'); sidebarOpen = false">✅ Lista</button>
+      <button type="button" [class.active]="activeView === 'inbox'" (click)="setView('inbox'); sidebarOpen = false">🔔 Bandeja</button>
     </nav>
 
     <section class="project-panel">
@@ -33,7 +33,7 @@
         <button type="button" title="Crear tarea" (click)="openCreateModal()">+</button>
       </div>
 
-      <button class="project-item" type="button" [class.active]="selectedProject === 'all'" (click)="selectedProject = 'all'">
+      <button class="project-item" type="button" [class.active]="selectedProject === 'all'" (click)="selectedProject = 'all'; sidebarOpen = false">
         <span class="project-dot all-dot"></span>
         <span>Todos los proyectos</span>
         <strong>{{ activeTasksCount }}</strong>
@@ -45,7 +45,7 @@
         *ngFor="let project of projects; trackBy: trackByProject"
         [class.active]="selectedProject === project.id"
         [ngStyle]="{'--project-color': project.color, '--project-glow': project.glow}"
-        (click)="selectedProject = project.id">
+        (click)="selectedProject = project.id; sidebarOpen = false">
         <span class="project-dot"></span>
         <span>{{ project.name }}</span>
         <strong>{{ getProjectCount(project.id) }}</strong>
@@ -65,8 +65,16 @@
     </section>
   </aside>
 
+  <div class="sidebar-backdrop" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <main class="workspace">
     <header class="topbar" [class.hidden]="hideTopbar">
+      <button class="menu-toggle" type="button" (click)="sidebarOpen = !sidebarOpen" aria-label="Abrir menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
       <div class="topbar-widget">
         <div>
           <span>Hoy en GO WEED</span>

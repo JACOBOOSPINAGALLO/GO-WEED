@@ -18,7 +18,7 @@
   --danger: #ff6b9a;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 285px minmax(0, 1fr);
+  grid-template-columns: 280px 1fr;
   color: var(--text);
   background:
     radial-gradient(circle at 22% 3%, rgba(110, 255, 86, .12), transparent 24rem),
@@ -96,6 +96,7 @@
   background: rgba(3, 16, 8, .78);
   backdrop-filter: blur(24px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .brand {
@@ -296,6 +297,7 @@
   padding: .8rem 1.1rem 2rem;
   min-height: 100vh;
   overflow: visible;
+  width: 100%;
 }
 
 .topbar {
@@ -318,6 +320,61 @@
   transform: translateY(-110%);
   opacity: 0;
   pointer-events: none;
+}
+
+.menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 10px;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  transition: background .2s ease;
+  
+  &:hover { background: rgba(255, 255, 255, .14); }
+  
+  span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1), opacity .3s ease;
+  }
+}
+
+.modal-backdrop {
+  display: none;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+.app-shell.mobile-menu-open .modal-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  backdrop-filter: blur(4px);
+  z-index: 30;
+}
+
+@media (max-width: 768px) {
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    backdrop-filter: blur(3px);
+    z-index: 40;
+  }
 }
 
 .topbar-widget {
@@ -1063,61 +1120,94 @@ textarea { resize: vertical; }
   100% { transform: translateY(110vh) rotate(760deg) scale(1.15); opacity: 0; }
 }
 
-@media (max-width: 1100px) {
-  .app-shell { grid-template-columns: 1fr; overflow: auto; }
-  .sidebar { position: relative; min-height: auto; padding: .75rem; }
-  .workspace { height: auto; }
-  .hero-card { grid-template-columns: 1fr; }
-  .hero-stats { max-width: 520px; }
-  .topbar { top: 0; }
+@media (max-width: 1024px) {
+  .app-shell { grid-template-columns: 260px 1fr; }
   .brand { gap: .5rem; margin-bottom: .8rem; }
   .brand-mark { width: 44px; height: 44px; border-radius: 14px; }
-  .eyebrow { font-size: .65rem; }
+  .workspace { padding: 1rem; gap: 1rem; }
+  .hero-card { grid-template-columns: 1fr; padding: 1rem; }
+  .hero-stats { max-width: 100%; grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .app-shell { grid-template-columns: 1fr; }
-  .sidebar { padding: .6rem; }
-  .brand { flex-direction: column; gap: .3rem; text-align: center; }
-  .brand-mark { width: 50px; height: 50px; margin: 0 auto .4rem; }
-  .brand strong { font-size: 1rem; }
-  .eyebrow { font-size: .6rem; }
-  .primary-action { padding: .7rem .8rem; font-size: .9rem; }
-  .side-nav button { padding: .65rem .8rem; font-size: .9rem; }
-  .project-item { padding: .65rem .8rem; font-size: .9rem; }
-  .private-note { padding: .7rem; margin-top: .8rem; }
-  .private-note__header strong { font-size: .95rem; }
-}
-
-@media (max-width: 720px) {
-  .workspace { padding: .7rem; }
-  .sidebar { padding: .5rem; }
-  .brand { gap: .25rem; }
-  .brand-mark { width: 48px; height: 48px; }
-  .topbar { align-items: stretch; flex-direction: column; }
-  .search-box { width: 100%; }
-  .hero-card { padding: 1.2rem; }
-  .hero-stats { grid-template-columns: 1fr; }
-  .toolbar-card { align-items: stretch; flex-direction: column; }
-  .toolbar-actions { flex-direction: column; }
-  .task-row { grid-template-columns: 26px 1fr; }
-  .task-row span:nth-of-type(n+2), .task-row em { grid-column: 2; }
-  .meta-grid, .form-grid, .theme-options { grid-template-columns: 1fr; }
-  .task-drawer { width: 100vw; }
+  .app-shell { 
+    grid-template-columns: 1fr;
+    overflow: hidden;
+  }
+  
+  .menu-toggle {
+    display: flex;
+  }
+  
+  .sidebar { 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    padding: 1rem;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, .8);
+  }
+  
+  .workspace { 
+    padding: .8rem;
+    gap: .8rem;
+  }
+  
+  .topbar {
+    position: relative;
+    z-index: 40;
+  }
+  
+  .brand { gap: .5rem; }
+  .brand-mark { width: 44px; height: 44px; border-radius: 14px; }
+  .eyebrow { font-size: .65rem; }
+  .primary-action { padding: .8rem; font-size: .9rem; }
+  .side-nav button { padding: .7rem; font-size: .9rem; }
+  .project-item { padding: .7rem; font-size: .9rem; }
+  .private-note { padding: .8rem; margin-top: 1rem; }
+  .hero-card { padding: 1rem; }
+  .hero-stats { grid-template-columns: 1fr; gap: .8rem; }
+  .toolbar-card { flex-direction: column; align-items: stretch; }
+  .toolbar-actions { flex-direction: column; gap: .6rem; }
+  .toolbar-actions select, .toolbar-actions button { width: 100%; }
 }
 
 @media (max-width: 480px) {
   .app-shell { grid-template-columns: 1fr; }
-  .sidebar { padding: .5rem; min-width: auto; }
-  .brand { gap: .2rem; margin-bottom: .6rem; }
+  
+  .sidebar {
+    width: 100vw;
+    max-width: 280px;
+  }
+  
+  .workspace { 
+    padding: .6rem;
+    gap: .6rem;
+  }
+  
+  .brand { gap: .3rem; margin-bottom: .6rem; }
   .brand-mark { width: 40px; height: 40px; border-radius: 12px; }
-  .brand div strong { font-size: .95rem; letter-spacing: -.02em; }
-  .eyebrow { font-size: .55rem; letter-spacing: .1em; }
-  .primary-action { padding: .6rem .7rem; font-size: .85rem; width: 100%; }
-  .side-nav { gap: 0; }
-  .side-nav button { padding: .6rem .7rem; font-size: .85rem; border-radius: 10px; }
-  .project-panel .panel-title { gap: .3rem; }
-  .project-item { padding: .6rem .7rem; font-size: .85rem; }
+  .brand div strong { font-size: .95rem; }
+  .eyebrow { font-size: .55rem; }
+  .primary-action { padding: .6rem; font-size: .85rem; }
+  .side-nav { gap: .3rem; }
+  .side-nav button { padding: .6rem; font-size: .85rem; border-radius: 10px; }
+  .project-item { padding: .6rem; font-size: .85rem; }
   .private-note { padding: .6rem; margin-top: .6rem; font-size: .85rem; }
-  .private-note__header strong { font-size: .9rem; }
+  .hero-card { padding: .9rem; }
+  .hero-stats { grid-template-columns: 1fr; gap: .6rem; }
+  .toolbar-card { flex-direction: column; }
+  .toolbar-actions { flex-direction: column; gap: .5rem; }
+  .task-drawer { width: 100vw; }
+  .modal-card { margin: 0 .5rem; }
 }
